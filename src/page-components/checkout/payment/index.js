@@ -24,11 +24,7 @@ import {
 } from '../styles';
 import Voucher from '../voucher';
 
-const StripeCheckout = dynamic(() => import('./stripe'));
-const KlarnaCheckout = dynamic(() => import('./klarna'));
-const VippsCheckout = dynamic(() => import('./vipps'));
-const MollieCheckout = dynamic(() => import('./mollie'));
-const PaypalCheckout = dynamic(() => import('./paypal'));
+const CODCheckout = dynamic(() => import('./cod'));
 
 const Row = styled.div`
   display: flex;
@@ -45,7 +41,10 @@ export default function Payment() {
   const [state, setState] = useState({
     firstName: '',
     lastName: '',
-    email: ''
+    email: '',
+    address: '',
+    phone: '',
+    pincode: ''
   });
 
   const paymentConfig = useQuery('paymentConfig', () =>
@@ -80,7 +79,7 @@ export default function Payment() {
     multilingualUrlPrefix = '/' + router.locale;
   }
 
-  const { firstName, lastName, email } = state;
+  const { firstName, lastName, email, phone, address, pincode } = state;
 
   function getURL(path) {
     return `${location.protocol}//${location.host}${multilingualUrlPrefix}${path}`;
@@ -110,12 +109,12 @@ export default function Payment() {
 
   const paymentProviders = [
     {
-      name: 'stripe',
-      color: '#6773E6',
-      logo: '/static/stripe-logo.png',
+      name: 'cash',
+      color: '#fff',
+      logo: '/static/cod-logo.png',
       render: () => (
         <PaymentProvider>
-          <StripeCheckout
+          <CODCheckout
             checkoutModel={checkoutModel}
             onSuccess={(crystallizeOrderId) => {
               router.push(
@@ -126,75 +125,7 @@ export default function Payment() {
               );
               scrollTo(0, 0);
             }}
-          />
-        </PaymentProvider>
-      )
-    },
-    {
-      name: 'klarna',
-      color: '#F8AEC2',
-      logo: '/static/klarna-logo.png',
-      render: () => (
-        <PaymentProvider>
-          <KlarnaCheckout
-            checkoutModel={checkoutModel}
-            basketActions={actions}
-            getURL={getURL}
-          />
-        </PaymentProvider>
-      )
-    },
-    {
-      name: 'vipps',
-      color: '#fff',
-      logo: '/static/vipps-logo.png',
-      render: () => (
-        <PaymentProvider>
-          <VippsCheckout
-            checkoutModel={checkoutModel}
-            basketActions={actions}
-            onSuccess={(url) => {
-              if (url) window.location = url;
-            }}
-          />
-        </PaymentProvider>
-      )
-    },
-    {
-      name: 'mollie',
-      color: '#fff',
-      logo: '/static/mollie-vector-logo.png',
-      render: () => (
-        <PaymentProvider>
-          <MollieCheckout
-            checkoutModel={checkoutModel}
-            basketActions={actions}
-            onSuccess={(url) => {
-              if (url) window.location = url;
-            }}
-          />
-        </PaymentProvider>
-      )
-    },
-    {
-      name: 'paypal',
-      color: '#fff',
-      logo: '/static/paypal-logo.png',
-      render: () => (
-        <PaymentProvider>
-          <PaypalCheckout
-            checkoutModel={checkoutModel}
-            basketActions={actions}
-            onSuccess={(crystallizeOrderId) => {
-              router.push(
-                checkoutModel.confirmationURL.replace(
-                  '{crystallizeOrderId}',
-                  crystallizeOrderId
-                )
-              );
-              scrollTo(0, 0);
-            }}
-          ></PaypalCheckout>
+          ></CODCheckout>
         </PaymentProvider>
       )
     }
@@ -203,20 +134,8 @@ export default function Payment() {
   const enabledPaymentProviders = [];
   if (!paymentConfig.loading && paymentConfig.data) {
     const { paymentProviders } = paymentConfig.data.data;
-    if (paymentProviders.klarna.enabled) {
-      enabledPaymentProviders.push('klarna');
-    }
-    if (paymentProviders.mollie.enabled) {
-      enabledPaymentProviders.push('mollie');
-    }
-    if (paymentProviders.vipps.enabled) {
-      enabledPaymentProviders.push('vipps');
-    }
-    if (paymentProviders.stripe.enabled) {
-      enabledPaymentProviders.push('stripe');
-    }
-    if (paymentProviders.paypal.enabled) {
-      enabledPaymentProviders.push('paypal');
+    if (paymentProviders) {
+      enabledPaymentProviders.push('cash');
     }
   }
 
@@ -259,6 +178,45 @@ export default function Payment() {
                 type="email"
                 value={email}
                 onChange={(e) => setState({ ...state, email: e.target.value })}
+                required
+              />
+            </InputGroup>
+          </Row>
+          <Row>
+            <InputGroup>
+              <Label htmlFor="address">{t('customer:address')}</Label>
+              <Input
+                name="address"
+                type="address"
+                value={address}
+                onChange={(e) =>
+                  setState({ ...state, address: e.target.value })
+                }
+                required
+              />
+            </InputGroup>{' '}
+          </Row>
+          <Row>
+            <InputGroup>
+              <Label htmlFor="phone">{t('customer:phone')}</Label>
+              <Input
+                name="phone"
+                type="phone"
+                value={phone}
+                onChange={(e) => setState({ ...state, phone: e.target.value })}
+                required
+              />
+            </InputGroup>
+
+            <InputGroup>
+              <Label htmlFor="pincode">{t('customer:pincode')}</Label>
+              <Input
+                name="pincode"
+                type="pincode"
+                value={pincode}
+                onChange={(e) =>
+                  setState({ ...state, pincode: e.target.value })
+                }
                 required
               />
             </InputGroup>
