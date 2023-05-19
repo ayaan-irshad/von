@@ -97,8 +97,10 @@ export default function Payment() {
       lastName,
       addresses: [
         {
-          type: 'billing',
-          email: email || null
+          type: 'delivery',
+          email: email || null,
+          street: address,
+          postalCode: pincode
         }
       ]
     },
